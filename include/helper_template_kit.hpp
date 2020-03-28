@@ -5,6 +5,9 @@
 DESIGN_PATTERN_START
 
 class NilType{};
+// 多参数操作工具声明
+template <typename ...types>
+struct any_types;
 
 // 计数辅助模板
 template <template <typename > class ... template_paras>
@@ -23,9 +26,6 @@ struct type_count
 	static constexpr auto value = sizeof...(types);
 };
 
-template <typename ...types>
-struct any_types;
-
 template <typename ... types>
 struct type_count<any_types<types...>>
 {
@@ -35,7 +35,6 @@ struct type_count<any_types<types...>>
 template <typename ... types>
 constexpr auto type_count_v = type_count<types...>::value;
 
-// 多参数操作工具
 
 // 多个模板参数包传递工具
 template <typename ... types>
@@ -276,13 +275,6 @@ struct has_factory_method<T, std::void_t<decltype(std::declval<T>().factory_meth
 template <typename T>
 constexpr auto has_factory_method_v = has_factory_method<T>::value;
 
-// type brush  类型刷子
-template <typename condinate>
-class type_brush
-{
-public:
-
-};
 
 DESIGN_PATTERN_END
 
