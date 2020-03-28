@@ -61,7 +61,7 @@ public:
 			return false;
 		return _next_responsibility_node->handle(msg);
 	}
-
+	// 可以写方法，用以检查 _next_responsibility_node , 参考 对应的 example
 	Chain_Of_Responsibility_Type* next_responsibility()
 	{
 		return _next_responsibility_node;

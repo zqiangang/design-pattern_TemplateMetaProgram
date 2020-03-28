@@ -13,6 +13,7 @@ public:
 	}
 };
 
+// 事件类型
 using myHMsg = event_type<HelloMsg, default_chain_of_responsibility_id<NilType>>;
 
 class myHMsgConcreteA : public myHMsg
@@ -54,24 +55,59 @@ public:
 	}
 };
 
-template <typename handler>
-bool next_handler(handler* hp, std::true_type is_null_handler)
+// 普通函数	或 
+template <typename handler,typename msg_type>
+bool next_handler(handler* hp, msg_type const *,std::true_type is_null_handler)
 {
 	return false;
 }
 
-template <typename handler>
-bool next_handler(handler* hp, std::false_type is_null_handler)
+template <typename handler, typename msg_type>
+bool next_handler(handler* hp, msg_type const * msg,std::false_type is_null_handler)
 {
-	return hp->next_responsibility();;
+	return hp->next_responsibility()->handle(msg);
 }
 
+// 成员函数，在创建责任链类型是混入方法
+template <typename dervied_type>
+class check_call
+{
+private:
+	// CRTP
+	dervied_type* as_dervied()
+	{
+		return static_cast<dervied_type*>(this);
+	}
+	dervied_type const* as_dervied()const
+	{
+		return static_cast<dervied_type const*>(this);
+	}
+
+	bool next_handler(std::false_type is_null_handler)
+	{
+		return as_dervied()->next_responsibility()->next_responsibility();
+	}
+public:
+	// 便捷实现
+	bool next_call()
+	{
+		if (as_dervied()->next_responsibility() == nullptr)
+			return false;
+		return next_handler(std::false_type);
+	}
+};
+
+
+
+
 // 其次,定义自己的 消息处理类或使用默认的 
+// 混入 check_call 令 my_chain_of_responsibility 获得检查 next_responsibility 是否为空的能力
 using my_chain_of_responsibility = chain_of_responsibility_pattern_impl<
 	myHMsg, 
 	default_chain_of_responsibility_identical,
 	default_chain_of_responsibility_hack_method,
-	default_chain_of_responsibility_id>;
+	default_chain_of_responsibility_id,
+	/*check_call */>;	
 
 class HelloHandlerA : public my_chain_of_responsibility
 {
@@ -86,9 +122,9 @@ public:
 			return true;
 		}
 		if (next_responsibility() == nullptr)
-			return next_handler<my_chain_of_responsibility>(this, std::true_type{});
+			return false;
 		else
-			return next_handler< my_chain_of_responsibility>(this, std::false_type{});
+			return ::next_handler<my_chain_of_responsibility>(this,msg, std::false_type{});
 	}
 
 	virtual int id()const override				// 当前类处理 id 为 1的 事件
@@ -110,9 +146,9 @@ public:
 			return true;
 		}
 		if (next_responsibility() == nullptr)
-			return next_handler<my_chain_of_responsibility>(this, std::true_type{});
+			return false;
 		else
-			return next_handler< my_chain_of_responsibility>(this, std::false_type{});
+			return ::next_handler<my_chain_of_responsibility>(this,msg, std::false_type{});
 	}
 
 	virtual int id()const override				// 当前类处理 id 为 2 的 事件
