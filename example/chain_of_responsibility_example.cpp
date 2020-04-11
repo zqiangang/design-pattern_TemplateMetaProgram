@@ -83,7 +83,7 @@ private:
 		return static_cast<dervied_type const*>(this);
 	}
 
-	bool next_handler(std::false_type is_null_handler)
+	bool next_handler()
 	{
 		return as_dervied()->next_responsibility()->next_responsibility();
 	}
@@ -93,7 +93,7 @@ public:
 	{
 		if (as_dervied()->next_responsibility() == nullptr)
 			return false;
-		return next_handler(std::false_type);
+		return next_handler();
 	}
 };
 
